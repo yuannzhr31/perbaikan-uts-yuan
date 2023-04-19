@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Daftar Pasien</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h3>KLINIK AVICENNA</h3 >
+      <div class="form-container">
+          <h3>Tambah daftar pasien :</h3>
+          <form id="add-patient-form">
+              <label for="date" class="date"></label>
+              <input type="date" id="date" name="date" required>
+              <input class="input-btn" type="text" id="name" name="name" required
+                  placeholder="Isi nama lengkap disini...">
+              <label for="age"></label>
+              <input type="number" id="age" name="age" required placeholder="Isi Usia disini...">
+              <label for=" poli"></label>
+              <select id="poli" name="poli" required>
+                  <option value="">----Pilih----</option>
+              </select>
+              <button type="submit" class="tambah-btn">Tambah</button>
+          </form>
+      </div>
+      <br>
+      <h3>Berikut Adalah Daftar Pasien :</h3>
+      <table id="patient-table" border="1">
+          <thead>
+              <tr style="color: #000;">
+                  <th>
+                      <center>No</center>
+                  </th>
+                  <th>
+                      <center>Tanggal</center>
+                  </th>
+                  <th>
+                      <center>Nama</center>
+                  </th>
+                  <th>
+                      <center>Usia</center>
+                  </th>
+                  <th>
+                      <center>Poli</center>
+                  </th>
+                  <th>
+                      <center>Action</center>
+                  </th>
+              </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+      <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+      <script>
+          // Ambil data poli dari JSON Server
+          axios.get('http://localhost:3000/polies')
+              .then(response => {
+                  const poliSelect = document.getElementById('poli');
+                  response.data.forEach(poli => {
+                      const option = document.createElement('option');
+                      option.value = poli.name;
+                      option.text = poli.name;
+                      poliSelect.appendChild(option);
+                  });
+              })
+              .catch(error => {
+                  console.error(error);
+              });
+  
+          // Ambil data pasien dari JSON Server
+          axios.get('http://localhost:3000/patients')
+              .then(response => {
+                  const patients = response.data;
+                  const tableBody = document.querySelector('#patient-table tbody');
+                  tableBody.innerHTML = '';
+                  let no = 1;
+                  response.data.forEach(patient => {
+                      const tr = document.createElement('tr');
+                      tr.innerHTML = `
+                <td><center>${no}</center></td>
+                <td><center>${patient.date}</center></td>
+                <td>${patient.name}</td>
+                <td><center>${patient.age}</center></td>
+                <td><center>${patient.poli}</center></td>
+              <td><center>
+                  <button class="edit-btn" data-id="${patient.id}"><b>Edit</b></button>
+                  <button class="delete-btn" data-id="${patient.id}"><b>Delete</b></button>
+              </center></td>`;
+                      tableBody.appendChild(tr);
+                      no++;
+                  });
+  
+                  // Tambah event listener untuk button edit
+                  const editBtns = document.querySelectorAll('.edit-btn');
+                  editBtns.forEach(editBtn => {
+                      editBtn.addEventListener('click', () => {
+                          const patientId = editBtn.getAttribute('data-id');
+                          const patient = response.data.find(patient => patient.id == patientId);
+                          const form = document.getElementById('add-patient-form');
+                          form.setAttribute('data-id', patientId);
+                          form.date.value = patient.date;
+                          form.name.value = patient.name;
+                          form.age.value = patient.age;
+                          form.poli.value = patient.poli;
+                          document.querySelector('h2').innerHTML = 'Edit Pasien';
+                          document.querySelector('button[type="submit"]').innerHTML = 'Simpan';
+                      });
+                  });
+  
+                  // Tambah event listener untuk form tambah pasien
+                  const form = document.getElementById('add-patient-form');
+                  form.addEventListener('submit', event => {
+                      event.preventDefault();
+                      const date = form.date.value;
+                      const name = form.name.value;
+                      const age = form.age.value;
+                      const poli = form.poli.value;
+                      const patientId = form.getAttribute('data-id');
+                      const data = { date, name, age, poli };
+                      if (patientId) {
+                          // Edit data pasien
+                          axios.patch(`http://localhost:3000/patients/${patientId}`, data)
+                              .then(response => {
+                                  alert('Data pasien berhasil diubah');
+                                  location.reload();
+                              })
+                              .catch(error => {
+                                  console.error(error);
+                                  alert('Terjadi kesalahan saat mengubah data pasien');
+                              });
+                      } else {
+                          // Tambah data pasien
+                          axios.post('http://localhost:3000/patients', data)
+                              .then(response => {
+                                  alert('Data pasien berhasil ditambahkan');
+                                  location.reload();
+                              })
+                              .catch(error => {
+                                  console.error(error);
+                                  alert('Terjadi kesalahan saat menambahkan data pasien');
+                              });
+                      }
+                  });
+  
+                  // Tambah event listener untuk button hapus
+                  const deleteBtns = document.querySelectorAll('.delete-btn');
+                  deleteBtns.forEach(deleteBtn => {
+                      deleteBtn.addEventListener('click', () => {
+                          const confirmDelete = confirm('Anda yakin ingin menghapus data pasien ini?');
+                          if (confirmDelete) {
+                              const patientId = deleteBtn.getAttribute('data-id');
+                              axios.delete(`http://localhost:3000/patients/${patientId}`)
+                                  .then(response => {
+                                      alert('Data pasien berhasil dihapus');
+                                      location.reload();
+                                  })
+                                  .catch(error => {
+                                      console.error(error);
+                                      alert('Terjadi kesalahan saat menghapus data pasien');
+                                  });
+  
+                          }
+                      });
+                  });
+              })
+              .catch(error => {
+                  console.error(error);
+              });
+      </script>
+  </body>
+  
+  </html>
