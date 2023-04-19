@@ -1,0 +1,32 @@
+{
+  "patients": [
+    {
+      "date": "2023-04-19",
+      "name": "yuan",
+      "age": "20",
+      "poli": "Poli Umum",
+      "id": 2
+    },
+    {
+      "date": "2023-04-11",
+      "name": "Geigi",
+      "age": "21",
+      "poli": "Poli Gigi",
+      "id": 3
+    }
+  ],
+  "polies": [
+    {
+      "id": 1,
+      "name": "Poli Umum"
+    },
+    {
+      "id": 2,
+      "name": "Poli Gigi"
+    },
+    {
+      "id": 3,
+      "name": "Poli Anak"
+    }
+  ]
+}
